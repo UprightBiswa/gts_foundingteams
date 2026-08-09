@@ -39,7 +39,7 @@ config, and no network access required — the app runs offline on a fresh clone
 
 ```bash
 flutter analyze   # no issues
-flutter test      # 33 tests
+flutter test      # 34 tests
 flutter build apk --release
 ```
 
@@ -200,14 +200,14 @@ drawing roads and buildings separately.
 
 ## Tests
 
-33 tests, `flutter test`:
+34 tests, `flutter test`:
 
 - **`route_path_test.dart`** — haversine distance and bearing against known
   values, cumulative distances, endpoint clamping, travelled-polyline growth.
 - **`trip_simulator_test.dart`** — the journey completes and arrives, distance is
-  monotonic, the scripted profile really does breach the limit and really does
-  stop, ETA stays finite while the vehicle is stationary, both demo overrides,
-  and reset.
+  monotonic, the vehicle reads as stopped once it has arrived, the scripted
+  profile really does breach the limit and really does stop, ETA stays finite
+  while the vehicle is stationary, both demo overrides, and reset.
 - **`safety_monitor_test.dart`** — each rule's fire and clear conditions, the
   hysteresis band (48 km/h must neither re-fire nor resolve), severity ranking
   for the banner slot, and that a parked vehicle *after drop-off* is not an
@@ -219,8 +219,14 @@ drawing roads and buildings separately.
 
 The widget tests run at a real phone viewport (390×844). The default 800×600 test
 surface is shorter than any device this ships to, and it was hiding two genuine
-layout bugs — an infinite-height constraint in the metrics row and two rows that
-overflowed at real phone width. Both are fixed.
+layout bugs — an infinite-height constraint in the metrics row that crashed the
+screen on launch, and two rows that overflowed at real phone width. Both are
+fixed.
+
+A fourth bug only showed up when I screenshotted the release build on a physical
+device: the speed tile froze at the last cruising speed after arrival, so the
+screen read "Arrived safely" beside a live 33 km/h. Fixed, with a regression
+test — a safety product cannot contradict itself.
 
 ---
 
@@ -242,6 +248,10 @@ rather than a code vending machine:
   visual check would have missed: `CrossAxisAlignment.stretch` forcing an infinite
   height inside the `ListView` (a crash on launch), and two `RenderFlex` overflows
   that only appear at true phone width.
+- Ran the release build on a physical device and read the screenshots critically,
+  which is what caught the fourth bug — the frozen speed reading after arrival.
+  Worth saying plainly: the tests and the device pass caught things I would
+  otherwise have shipped, and neither was a substitute for the other.
 
 I understand every part of this and can walk through any of it — the haversine
 projection, why the hysteresis band exists, why `NotifierProvider` doesn't need
